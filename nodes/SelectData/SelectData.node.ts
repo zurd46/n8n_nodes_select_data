@@ -423,18 +423,32 @@ export class SelectData implements INodeType {
 					}
 				}
 			} else if (mode === 'split') {
-				const splitField = this.getNodeParameter('splitField', i, '') as string;
+				const splitFieldInput = this.getNodeParameter('splitField', i, '') as string;
 				const splitModeSeparator = (this.getNodeParameter('splitModeSeparator', i, '\\n') as string).replace(/\\n/g, '\n').replace(/\\t/g, '\t');
 				const splitOutputField = this.getNodeParameter('splitOutputField', i, 'value') as string;
 
-				if (!splitField) continue;
+				if (!splitFieldInput) continue;
 
-				// Get the value to split
+				// Determine if input is a field path or a direct value
+				// If it contains the separator or looks like a URL/value, treat it as direct value
+				// Otherwise, treat it as a field path
 				let valueToSplit: unknown;
-				if (splitField.includes('.')) {
-					valueToSplit = getNestedValue(item.json, splitField);
+
+				const looksLikeValue = splitFieldInput.includes(splitModeSeparator) ||
+					splitFieldInput.startsWith('http') ||
+					splitFieldInput.startsWith('mailto:') ||
+					splitFieldInput.includes('://') ||
+					splitFieldInput.includes('@');
+
+				if (looksLikeValue) {
+					// Direct value passed via expression
+					valueToSplit = splitFieldInput;
+				} else if (splitFieldInput.includes('.')) {
+					// Field path with dot notation
+					valueToSplit = getNestedValue(item.json, splitFieldInput);
 				} else {
-					valueToSplit = item.json[splitField];
+					// Simple field name
+					valueToSplit = item.json[splitFieldInput];
 				}
 
 				let splitValues: unknown[] = [];
