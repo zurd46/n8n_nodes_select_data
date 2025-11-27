@@ -92,6 +92,11 @@ export class SelectData implements INodeType {
 						description: 'Select and rename fields',
 					},
 					{
+						name: 'Split Field to Items',
+						value: 'split',
+						description: 'Split a field value (array or string) into separate output items',
+					},
+					{
 						name: 'Manual',
 						value: 'manual',
 						description: 'Manually enter field names',
@@ -173,6 +178,45 @@ export class SelectData implements INodeType {
 					},
 				],
 				description: 'Select and rename fields',
+			},
+			// Split Mode
+			{
+				displayName: 'Field to Split',
+				name: 'splitField',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				placeholder: 'output.urls',
+				description: 'The field path containing the value to split (supports dot notation). Can be an array or a string.',
+			},
+			{
+				displayName: 'Split Separator',
+				name: 'splitModeSeparator',
+				type: 'string',
+				default: '\\n',
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				placeholder: '\\n or , or ;',
+				description: 'Separator to split string values. Use \\n for newlines, \\t for tabs. Ignored if value is already an array.',
+			},
+			{
+				displayName: 'Output Field Name',
+				name: 'splitOutputField',
+				type: 'string',
+				default: 'value',
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				description: 'Name of the field in each output item',
 			},
 			// Manual Mode
 			{
