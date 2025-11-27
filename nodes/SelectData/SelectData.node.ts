@@ -60,7 +60,7 @@ export class SelectData implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Select Data',
 		name: 'selectData',
-		icon: 'fa:filter',
+		icon: 'file:selectData.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["mode"]}}',
