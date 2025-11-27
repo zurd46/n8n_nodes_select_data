@@ -422,6 +422,40 @@ export class SelectData implements INodeType {
 						newJson[newName] = value as IDataObject[keyof IDataObject];
 					}
 				}
+			} else if (mode === 'split') {
+				const splitField = this.getNodeParameter('splitField', i, '') as string;
+				const splitModeSeparator = (this.getNodeParameter('splitModeSeparator', i, '\\n') as string).replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+				const splitOutputField = this.getNodeParameter('splitOutputField', i, 'value') as string;
+
+				if (!splitField) continue;
+
+				// Get the value to split
+				let valueToSplit: unknown;
+				if (splitField.includes('.')) {
+					valueToSplit = getNestedValue(item.json, splitField);
+				} else {
+					valueToSplit = item.json[splitField];
+				}
+
+				let splitValues: unknown[] = [];
+
+				if (Array.isArray(valueToSplit)) {
+					splitValues = valueToSplit;
+				} else if (typeof valueToSplit === 'string') {
+					splitValues = valueToSplit.split(splitModeSeparator).map(s => s.trim()).filter(s => s);
+				}
+
+				if (splitValues.length > 0) {
+					for (const val of splitValues) {
+						const splitJson: IDataObject = {};
+						splitJson[splitOutputField] = val as IDataObject[keyof IDataObject];
+						returnData.push({
+							json: splitJson,
+							pairedItem: { item: i },
+						});
+					}
+					continue; // Skip the normal push at the end
+				}
 			} else if (mode === 'manual') {
 				const manualFields = this.getNodeParameter('manualFields', i, '') as string;
 				const manualAction = this.getNodeParameter('manualAction', i, 'include') as string;
