@@ -218,6 +218,44 @@ export class SelectData implements INodeType {
 				},
 				description: 'Name of the field in each output item',
 			},
+			{
+				displayName: 'Exclude Patterns',
+				name: 'splitExcludePatterns',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				placeholder: 'linkedin, mailto:, facebook',
+				description: 'Comma-separated list of patterns to exclude. Items containing any of these patterns will be filtered out.',
+			},
+			{
+				displayName: 'Include Only Patterns',
+				name: 'splitIncludePatterns',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				placeholder: 'https://, http://',
+				description: 'Comma-separated list of patterns. If set, only items containing at least one of these patterns will be included.',
+			},
+			{
+				displayName: 'Remove Duplicates',
+				name: 'splitRemoveDuplicates',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						mode: ['split'],
+					},
+				},
+				description: 'Whether to remove duplicate values from the output',
+			},
 			// Manual Mode
 			{
 				displayName: 'Field Names (Comma-Separated)',
@@ -426,6 +464,12 @@ export class SelectData implements INodeType {
 				const splitFieldInput = this.getNodeParameter('splitField', i, '') as string;
 				const splitModeSeparator = (this.getNodeParameter('splitModeSeparator', i, '\\n') as string).replace(/\\n/g, '\n').replace(/\\t/g, '\t');
 				const splitOutputField = this.getNodeParameter('splitOutputField', i, 'value') as string;
+				const excludePatternsInput = this.getNodeParameter('splitExcludePatterns', i, '') as string;
+				const includePatternsInput = this.getNodeParameter('splitIncludePatterns', i, '') as string;
+				const removeDuplicates = this.getNodeParameter('splitRemoveDuplicates', i, false) as boolean;
+
+				const excludePatterns = excludePatternsInput.split(',').map(p => p.trim().toLowerCase()).filter(p => p);
+				const includePatterns = includePatternsInput.split(',').map(p => p.trim().toLowerCase()).filter(p => p);
 
 				if (!splitFieldInput) continue;
 
@@ -459,7 +503,29 @@ export class SelectData implements INodeType {
 					splitValues = valueToSplit.split(splitModeSeparator).map(s => s.trim()).filter(s => s);
 				}
 
+				// Apply filters
 				if (splitValues.length > 0) {
+					// Filter by exclude patterns
+					if (excludePatterns.length > 0) {
+						splitValues = splitValues.filter(val => {
+							const valStr = String(val).toLowerCase();
+							return !excludePatterns.some(pattern => valStr.includes(pattern));
+						});
+					}
+
+					// Filter by include patterns
+					if (includePatterns.length > 0) {
+						splitValues = splitValues.filter(val => {
+							const valStr = String(val).toLowerCase();
+							return includePatterns.some(pattern => valStr.includes(pattern));
+						});
+					}
+
+					// Remove duplicates
+					if (removeDuplicates) {
+						splitValues = [...new Set(splitValues.map(v => String(v)))];
+					}
+
 					for (const val of splitValues) {
 						const splitJson: IDataObject = {};
 						splitJson[splitOutputField] = val as IDataObject[keyof IDataObject];

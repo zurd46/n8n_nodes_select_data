@@ -1,6 +1,6 @@
 {
 	"name": "@zurdai/n8n-nodes-select-data",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"description": "n8n node for visually selecting and cleaning data fields",
 	"keywords": [
 		"n8n-community-node-package",
